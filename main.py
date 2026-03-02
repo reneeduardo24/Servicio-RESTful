@@ -1,7 +1,7 @@
 """
-API REST mínima (FastAPI + Firestore)
+API REST (FastAPI + Firestore)
 Colecciones: usuarios, publicaciones, comentarios
-Operaciones: CRUD + búsquedas específicas por query params
+Operaciones: CRUD + búsquedas específicas
 """
 
 from datetime import datetime
@@ -17,8 +17,8 @@ from firebase_admin import credentials, firestore
 # Firebase / Firestore
 # =========================
 cred = credentials.Certificate("credenciales.json")
-firebase_admin.initialize_app(cred)
-db = firestore.client()
+firebase_admin.initialize_app(cred) # Prepara la conexion
+db = firestore.client() # Cliente para interactuar con Firestore
 
 # =========================
 # App + Swagger (ordenado por secciones)
@@ -61,8 +61,8 @@ class Comentario(BaseModel):
 # Helpers mínimos
 # =========================
 def doc_dict(doc):
-    data = doc.to_dict()
-    data["id"] = doc.id
+    data = doc.to_dict() # almacena el contenido del documento
+    data["id"] = doc.id 
     return data
 
 
@@ -88,7 +88,7 @@ def root():
 @app.post("/usuarios", tags=["Usuarios"], summary="Crear usuario")
 def crear_usuario(usuario: Usuario):
     doc_ref = db.collection("usuarios").document()
-    doc_ref.set(usuario.model_dump())
+    doc_ref.set(usuario.model_dump()) # model_dump() convierte el modelo Pydantic
     return {"id": doc_ref.id, "mensaje": "Usuario creado"}
 
 
@@ -108,7 +108,7 @@ def obtener_usuarios(correo: Optional[str] = None, nombre: Optional[str] = None)
 
 @app.get("/usuarios/{user_id}", tags=["Usuarios"], summary="Obtener usuario por ID")
 def obtener_usuario(user_id: str):
-    doc = db.collection("usuarios").document(user_id).get()
+    doc = db.collection("usuarios").document(user_id).get() # obtiene el documento con el ID especificado
     if not doc.exists:
         return {"error": "Usuario no encontrado"}
     return doc_dict(doc)
@@ -120,7 +120,7 @@ def actualizar_usuario(user_id: str, usuario: Usuario):
     if not doc_ref.get().exists:
         return {"error": "Usuario no encontrado"}
 
-    doc_ref.update(usuario.model_dump())
+    doc_ref.update(usuario.model_dump()) # Pydantic convierte el modelo a un diccionario con model_dump()
     return {"mensaje": "Usuario actualizado"}
 
 
@@ -154,7 +154,7 @@ def obtener_publicaciones(
     desde: Optional[datetime] = None,
     hasta: Optional[datetime] = None,
 ):
-    query = db.collection("publicaciones")
+    query = db.collection("publicaciones") # referencia a la colección de publicaciones
 
     if titulo:
         query = query.where("titulo", "==", titulo)
@@ -168,7 +168,7 @@ def obtener_publicaciones(
         ids = user_ids_by_nombre(usuario)
         if not ids:
             return []
-        query = query.where("id_usr", "in", ids)
+        query = query.where("id_usr", "in", ids) # Traer publicaciones de todos los usuarios que coincidan con el nombre
 
     return [doc_dict(d) for d in query.stream()]
 
