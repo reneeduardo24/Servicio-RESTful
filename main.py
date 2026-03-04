@@ -71,7 +71,7 @@ def exists(collection: str, doc_id: str) -> bool:
 
 
 def user_ids_by_nombre(nombre: str):
-    return [u.id for u in db.collection("usuarios").where("nombreCompleto", "==", nombre).stream()]
+    return [u.id for u in db.collection("usuarios").where("nombreCompleto", "==", nombre).stream()] # lista de IDs
 
 
 # =========================
